@@ -3,6 +3,8 @@
  */
 package com.domker.robot.wechat.robot.tuling;
 
+import java.util.List;
+
 import com.blade.kit.StringKit;
 import com.google.gson.Gson;
 
@@ -27,8 +29,9 @@ public class MessageParser {
 			case 100000: // 问答
 			case 200000: // 带url的问答
 				return parserAsk(json);
-			case 302000:// 新闻
 			case 308000:// 菜谱
+				return parserMenuList(json);
+			case 302000:// 新闻
 			default:
 				return "";
 			}
@@ -49,5 +52,23 @@ public class MessageParser {
 			return String.format("%s\n%s", ask.getText(), ask.getUrl());
 		}
 		return ask.getText();
+	}
+
+	/**
+	 * 解析菜单列表
+	 * 
+	 * @param json
+	 * @return
+	 */
+	private String parserMenuList(String json) {
+		MessageMenuList menuList = gson.fromJson(json, MessageMenuList.class);
+		List<MessageMenu> list = menuList.getList();
+		StringBuffer sb = new StringBuffer();
+		for (MessageMenu menu : list) {
+			sb.append(menu.getName()).append("\n");
+			sb.append(menu.getInfo()).append("\n");
+			sb.append(menu.getDetailurl()).append("\n");
+		}
+		return sb.toString();
 	}
 }
