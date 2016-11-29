@@ -26,7 +26,7 @@ public class Constant {
 	/**
 	 * 群内聊天前缀
 	 */
-	public static final String ROBOT_NAME_PREX = "@二蛋 ";
+	public static final String ROBOT_NAME_PREX = "@二蛋";
 
 	/**
 	 * 网络出现问题之后，重试次数

@@ -52,7 +52,6 @@ public class TulingRobot extends AbstractRobot {
 			if (StringKit.isNotBlank(talkId)) {
 				url += "&userid=" + getCacheTalkId(talkId);
 			}
-			System.out.println(url);
 			String result = HttpRequest.get(url).connectTimeout(3000).body();
 			return result;
 		} catch (Exception e) {

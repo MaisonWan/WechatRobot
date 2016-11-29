@@ -376,7 +376,7 @@ public class WechatServiceImpl implements WechatService {
 							talkId = content.substring(1, content.indexOf("<br/>") - 1);
 							LOGGER.info("用户ID：" + talkId);
 						}
-						int index = content.indexOf(Constant.ROBOT_NAME_PREX) + Constant.ROBOT_NAME_PREX.length();
+						int index = content.indexOf(Constant.ROBOT_NAME_PREX) + Constant.ROBOT_NAME_PREX.length() + 1;
 						String sendContent = content.substring(index);
 						LOGGER.info("发送云端：" + sendContent);
 						String ans = robot.talk(sendContent, talkId);
