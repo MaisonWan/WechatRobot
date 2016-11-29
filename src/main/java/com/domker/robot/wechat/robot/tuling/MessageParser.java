@@ -32,11 +32,12 @@ public class MessageParser {
 			case 308000:// 菜谱
 				return parserMenuList(json);
 			case 302000:// 新闻
+				return parserNewsList(json);
 			default:
-				return "";
+				return json;
 			}
 		} catch (Exception e) {
-			return "";
+			return json;
 		}
 	}
 
@@ -68,6 +69,23 @@ public class MessageParser {
 			sb.append(menu.getName()).append("\n");
 			sb.append(menu.getInfo()).append("\n");
 			sb.append(menu.getDetailurl()).append("\n");
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 解析新闻
+	 * 
+	 * @param json
+	 * @return
+	 */
+	private String parserNewsList(String json) {
+		MessageNewsList newsList = gson.fromJson(json, MessageNewsList.class);
+		List<MessageNews> list = newsList.getList();
+		StringBuffer sb = new StringBuffer();
+		for (MessageNews news : list) {
+			sb.append(news.getArticle()).append("[").append(news.getSource()).append("]\n");
+			sb.append(news.getDetailurl()).append("\n");
 		}
 		return sb.toString();
 	}
