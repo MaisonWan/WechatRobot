@@ -28,6 +28,7 @@ public class Constant {
 	 */
 	public static final String ROBOT_NAME_PREX = "@二蛋";
 
+	public static final String UNKNOW_NAME = "这个人物名字未知";
 	/**
 	 * 网络出现问题之后，重试次数
 	 */

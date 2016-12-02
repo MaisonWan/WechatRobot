@@ -354,7 +354,8 @@ public class WechatServiceImpl implements WechatService {
 			LOGGER.info("你有新的消息，请注意查收");
 			JSONObject msg = AddMsgList.get(i).asJSONObject();
 			int msgType = msg.getInt("MsgType", 0);
-			String name = getUserRemarkName(msg.getString("FromUserName"));
+			String fromUserName = msg.getString("FromUserName");
+			String remarkName = getUserRemarkName(fromUserName);
 			String content = msg.getString("Content");
 			
 			if (msgType == 51) {
@@ -362,27 +363,32 @@ public class WechatServiceImpl implements WechatService {
 			} else if (msgType == 1) {
 				if (Constant.FILTER_USERS.contains(msg.getString("ToUserName"))) {
 					continue;
-				} else if (msg.getString("FromUserName").equals(wechatMeta.getUser().getString("UserName"))) {
+				} else if (fromUserName.equals(wechatMeta.getUser().getString("UserName"))) {
 					continue;
 				} else if (msg.getString("ToUserName").indexOf("@@") != -1) {
 					String[] peopleContent = content.split(":<br/>");
-					LOGGER.info("|" + name + "| " + peopleContent[0] + ":\n" + peopleContent[1].replace("<br/>", "\n"));
+					LOGGER.info("|" + remarkName + "| " + peopleContent[0] + ":\n" + peopleContent[1].replace("<br/>", "\n"));
 				} else {
-					LOGGER.info(name + ": " + content);
-					if (content.contains(Constant.ROBOT_NAME_PREX)) {
+					LOGGER.info(remarkName + ": " + content);
+					String sendContent = null;
+					String talkId = null;
+					if (!Constant.UNKNOW_NAME.equals(remarkName)) {
+						// 单独聊天
+						sendContent = content;
+						talkId = fromUserName;
+					} else if (content.contains(Constant.ROBOT_NAME_PREX)) {
 						// 判断用户id
-						String talkId = null;
 						if (content.startsWith("@") && content.contains("<br/>")) {
 							talkId = content.substring(1, content.indexOf("<br/>") - 1);
 							LOGGER.info("用户ID：" + talkId);
 						}
 						int index = content.indexOf(Constant.ROBOT_NAME_PREX) + Constant.ROBOT_NAME_PREX.length() + 1;
-						String sendContent = content.substring(index);
-						LOGGER.info("发送云端：" + sendContent);
-						String ans = robot.talk(sendContent, talkId);
-						webwxsendmsg(wechatMeta, ans, msg.getString("FromUserName"));
-						LOGGER.info("自动回复：" + ans);
+						sendContent = content.substring(index);
 					}
+					LOGGER.info("发送云端：" + sendContent);
+					String ans = robot.talk(sendContent, talkId);
+					webwxsendmsg(wechatMeta, ans, fromUserName);
+					LOGGER.info("自动回复：" + ans);
 				}
 			} else if (msgType == 3) {
 				String imgDir = Constant.config.get("app.img_path");
@@ -390,11 +396,11 @@ public class WechatServiceImpl implements WechatService {
 				FileKit.createDir(imgDir, false);
 				String imgUrl = wechatMeta.getBase_uri() + "/webwxgetmsgimg?MsgID=" + msgId + "&skey=" + wechatMeta.getSkey() + "&type=slave";
 				HttpRequest.get(imgUrl).header("Cookie", wechatMeta.getCookie()).receive(new File(imgDir + "/" + msgId+".jpg"));
-				webwxsendmsg(wechatMeta, "二蛋还不支持图片呢", msg.getString("FromUserName"));
+				webwxsendmsg(wechatMeta, Constant.ROBOT_NAME + "还不支持图片呢", fromUserName);
 			} else if (msgType == 34) {
-				webwxsendmsg(wechatMeta, "二蛋还不支持语音呢", msg.getString("FromUserName"));
+				webwxsendmsg(wechatMeta, Constant.ROBOT_NAME + "还不支持语音呢", fromUserName);
 			} else if (msgType == 42) {
-				LOGGER.info(name + " 给你发送了一张名片:");
+				LOGGER.info(remarkName + " 给你发送了一张名片:");
 				LOGGER.info("=========================");
 			}
 		}
@@ -428,8 +434,14 @@ public class WechatServiceImpl implements WechatService {
 		request.disconnect();
 	}
 	
+	/**
+	 * 获取用户的备注名字
+	 * 
+	 * @param id
+	 * @return
+	 */
 	private String getUserRemarkName(String id) {
-		String name = "这个人物名字未知";
+		String name = Constant.UNKNOW_NAME;
 		for (int i = 0, len = Constant.CONTACT.getMemberList().size(); i < len; i++) {
 			JSONObject member = Constant.CONTACT.getMemberList().get(i).asJSONObject();
 			if (member.getString("UserName").equals(id)) {
